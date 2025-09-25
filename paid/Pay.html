@@ -1,280 +1,199 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Đóng học phí</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: "Segoe UI", sans-serif;
-      background: #0d0d0d;
-      color: #f8f9fa;
-      text-align: center;
-      overflow-x: hidden;
-    }
+<meta charset="UTF-8">
+<title>Đóng đoàn phí</title>
+<style>
+  body { margin:0; padding:0; font-family:"Segoe UI"; background:#0d0d0d; color:#f8f9fa; text-align:center; }
+  h2 { margin:30px 0 20px; color:#ff85c0; text-shadow:0 0 15px rgba(255,133,192,0.8); }
+  #loading { margin:20px 0; font-size:18px; color:#ff85c0; animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity:0.5; } }
+  #studentList { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,220px)); gap:20px; justify-content:center; max-width:1000px; margin:0 auto; padding:20px; }
+  @media (min-width:768px){ #studentList{grid-template-columns:repeat(3,1fr);} }
+  @media (max-width:500px){ #studentList{grid-template-columns:1fr;} }
+  .student { background:rgba(255,255,255,0.05); border-radius:12px; padding:15px; cursor:pointer; transition:all 0.25s ease; font-weight:500; backdrop-filter:blur(4px); border:2px solid transparent; }
+  .student:hover { transform:translateY(-5px) scale(1.02); background:rgba(255,255,255,0.1); box-shadow:0 4px 15px rgba(255,133,192,0.4); }
+  .student.disabled { background:rgba(0,128,0,0.2); border:2px solid #28a745; color:#aaffaa; cursor:not-allowed; box-shadow:none; }
+  .student.unpaid { background:rgba(128,0,0,0.2); border:2px solid #dc3545; color:#ff9999; }
 
-    h2 {
-      margin: 30px 0 20px 0;
-      color: #ff85c0;
-      text-shadow: 0 0 15px rgba(255,133,192,0.8);
-      position: relative;
-      z-index: 1;
-    }
+  /* Popup */
+  /* Popup */
+  #popup { 
+      display:none; 
+      position:fixed; 
+      top:50%; left:50%; 
+      transform:translate(-50%,-50%); 
+      background:#111; 
+      padding:30px; 
+      border-radius:20px; 
+      box-shadow:0 0 30px rgba(255,133,192,0.5); 
+      width:90%; 
+      max-width:500px; 
+      max-height:90%; 
+      overflow-y:auto; 
+      text-align:center; 
+      z-index:999; 
+  }
 
-    #loading {
-      margin: 20px 0;
-      font-size: 18px;
-      color: #ff85c0;
-      animation: blink 1s infinite;
-    }
+  #popup h3 { 
+      color:#ff85c0; 
+      margin-bottom:20px; 
+  }
 
-    @keyframes blink {
-      50% { opacity: 0.5; }
-    }
+  #popup img { 
+      display:block; 
+      margin:0 auto 20px auto; 
+      width:250px; 
+      max-width:80%; 
+      height:auto; 
+  }
 
-    #studentList {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 220px));
-      gap: 20px;
-      justify-content: center;
-      max-width: 1000px;   /* không cho vượt quá 1000px */
-      margin: 0 auto;      /* căn giữa nguyên khối */
-      padding: 20px;
-    }
+  #popup p { 
+      margin:8px 0; 
+      font-size:16px;
+  }
 
-
-
-
-
-
-
-
-    /* Nếu màn hình rộng hơn 768px (tablet/PC) thì tối đa 3 cột */
-    @media (min-width: 768px) {
-      #studentList {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-
-    /* Nếu màn hình nhỏ (mobile) thì chỉ 1 cột */
-    @media (max-width: 500px) {
-      #studentList {
-        grid-template-columns: 1fr;
-      }
-    }
-
-
-    .student {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 12px;
-      padding: 15px;
-      cursor: pointer;
-      transition: all 0.25s ease;
-      font-weight: 500;
-      backdrop-filter: blur(4px);
-      border: 2px solid transparent;
-    }
-
-    .student:hover {
-      transform: translateY(-5px) scale(1.02);
-      background: rgba(255, 255, 255, 0.1);
-      box-shadow: 0 4px 15px rgba(255,133,192,0.4);
-    }
-
-    .student.disabled {
-      background: rgba(0, 128, 0, 0.2);
-      border: 2px solid #28a745;
-      color: #aaffaa;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-
-    .student.unpaid {
-      background: rgba(128, 0, 0, 0.2);
-      border: 2px solid #dc3545;
-      color: #ff9999;
-    }
-
-    .student.selected {
-      background: rgba(0, 123, 255, 0.3);
-      border: 2px solid #007bff;
-      color: #aad4ff;
-      box-shadow: 0 0 15px rgba(0,123,255,0.6);
-    }
+  /* Nút X góc trên */
+  #closeBtn {
+      position:absolute;
+      top:10px;
+      right:10px;
+      background:none;
+      border:none;
+      font-size:22px;
+      color:#ff85c0;
+      cursor:pointer;
+  }
 
 
 
-    .student-card {
-      background: #222;
-      border-radius: 10px;
-      padding: 15px;
-      border: 2px solid transparent;
-      cursor: pointer;
-      transition: all 0.3s;
-      color: white;
-      width: 220px;       /* chiều rộng cố định */
-      height: 160px;      /* chiều cao cố định */
-      box-sizing: border-box; /* đảm bảo padding không phá kích thước */
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
+  #paidBtn {
+      display:block;
+      margin:15px auto 0 auto;
+      padding:12px 20px;
+      border:none;
+      border-radius:12px;
+      background:linear-gradient(45deg,#ff4da6,#ff85c0);
+      color:white;
+      font-weight:bold;
+      cursor:pointer;
+      transition:all 0.3s ease;
+  }
+  #paidBtn:hover {
+      background:linear-gradient(45deg,#ff85c0,#ff4da6);
+      transform:scale(1.05);
+  }
+  /* QR zoom fullscreen */
+  #qrZoom {
+      display:none;
+      position:fixed;
+      top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.85);
+      justify-content:center;
+      align-items:center;
+      z-index:1000;
+  }
+  #qrZoom img {
+      max-width:90%;
+      max-height:90%;
+      border-radius:15px;
+      box-shadow:0 0 30px rgba(255,133,192,0.7);
+      cursor:zoom-out;
+  }
 
 
-
-    #payBtn {
-      margin-top: 25px;
-      padding: 12px 35px;
-      border: none;
-      border-radius: 30px;
-      background: linear-gradient(45deg, #ff4da6, #ff85c0);
-      color: white;
-      font-size: 18px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      z-index: 1;
-      position: relative;
-    }
-
-    #payBtn:hover {
-      background: linear-gradient(45deg, #ff85c0, #ff4da6);
-      transform: scale(1.08);
-      box-shadow: 0 0 20px rgba(255,133,192,0.7);
-    }
-
-    #result {
-      margin-top: 20px;
-      font-weight: bold;
-      color: #fff;
-      text-shadow: 0 0 10px rgba(255,255,255,0.5);
-      z-index: 1;
-      position: relative;
-    }
-
-    /* particles canvas */
-    #particles-js {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-      pointer-events: none;
-    }
-  </style>
+</style>
 </head>
 <body>
-  <div id="particles-js"></div>
 
-  <h2>✨ Danh sách học sinh đoàn phí 11A6</h2>
-  <p id="loading">⏳ Đang tải danh sách...</p>
-  <div id="studentList"></div>
-  <br>
-  <button id="payBtn">💳 Đóng tiền</button>
-  <p id="result"></p>
+<h2>✨ Danh sách học sinh đoàn phí 11A6</h2>
+<p id="loading">⏳ Đang tải danh sách...</p>
+<div id="studentList"></div>
 
-  <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbzqvteknQB9x_ybQGAwr5yrSTSqRRA3Vbo32hhj-CnQyTEU05RiRKEVff8JSkcmo0RD1w/exec"; // thay bằng link của bạn
-    let selectedStudent = null;
+<!-- Popup thông tin thanh toán -->
+<div id="popup">
+  <button id="closeBtn" onclick="closePopup()">✖</button>
+  <h3>Thông tin thanh toán</h3>
+  <img id="qrImage" src="" alt="QR Code" onclick="zoomQR(this)">
+  <p><strong>Ngân Hàng:</strong> MB Bank</p>
+  <p><strong>Chủ Tài Khoản:</strong> DAO DUY PHAT</p>
+  <p><strong>Số Tài Khoản:</strong> 0343406068</p>
+  <p><strong>Số tiền:</strong> 11.000đ</p>
+  <p><strong>Nội Dung:</strong> <span id="popupName"></span></p>
+  <button id="paidBtn" onclick="markPaid()">💳 Tôi đã hoàn tất thanh toán trên app</button>
+</div>
 
-    // Load danh sách từ Google Sheet
-    fetch(API_URL)
-      .then(res => res.json())
-      .then(data => {
-        document.getElementById("loading").style.display = "none"; // ẩn loading
-        const container = document.getElementById("studentList");
+<!-- Lightbox QR fullscreen -->
+<div id="qrZoom" onclick="closeZoom()">
+  <img id="qrZoomImg" src="" alt="QR Code Fullscreen">
+</div>
 
-        data.forEach((stu, index) => {
-          const div = document.createElement("div");
-          div.className = "student";
 
-          if (stu.status === "PAID") {
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbyZ7BT6Uo1snIiBB0bXH5DvipBLRkTFKryRmzaE-0WXFXO8LHuEmpSVwPLHxRnRIXZ4zA/exec";
+
+function showPopup(studentName){
+    const popup = document.getElementById("popup");
+    document.getElementById("popupName").innerText = studentName;
+    document.getElementById("qrImage").src = `https://img.vietqr.io/image/MB-0343406068-compact2.png?amount=11000&addInfo=${encodeURIComponent(studentName)}`;
+    popup.style.display = "block";
+}
+
+function zoomQR(img){
+    const zoom = document.getElementById("qrZoom");
+    const zoomImg = document.getElementById("qrZoomImg");
+    zoomImg.src = img.src;
+    zoom.style.display = "flex";
+}
+
+function closeZoom(){
+    document.getElementById("qrZoom").style.display = "none";
+}
+
+
+function markPaid(){
+    const popup = document.getElementById("popup");
+    popup.innerHTML = `<button id="closeBtn" onclick="closePopup()">✖</button>
+                       <h3>Chờ xét duyệt</h3>
+                       <p>Thanh toán của bạn đã được ghi nhận, vui lòng chờ xét duyệt.</p>`;
+}
+
+
+function closePopup(){
+    document.getElementById("popup").style.display = "none";
+}
+
+// Load danh sách học sinh
+fetch(API_URL + "?action=get")
+.then(res => res.json())
+.then(data => {
+    document.getElementById("loading").style.display = "none";
+    const container = document.getElementById("studentList");
+
+    data.forEach((stu, index) => {
+        const div = document.createElement("div");
+        div.className = "student";
+
+        if(stu.status === "Paid"){
             div.classList.add("disabled");
-            div.innerHTML = `
-              <div><strong>STT:</strong> ${index + 1}</div>
-              <div><strong>Họ tên:</strong> ${stu.name}</div>
-              <div><strong>Lớp:</strong> 11A6</div>
-              <div><strong>Trạng thái:</strong> ✅ Đã đóng</div>
-            `;
-          } else {
+            div.innerHTML = `<div><strong>STT:</strong> ${stu.stt}</div>
+                             <div><strong>Họ tên:</strong> ${stu.name}</div>
+                             <div><strong>Lớp:</strong> 11A6</div>
+                             <div><strong>Trạng thái:</strong> ✅ Đã đóng</div>`;
+        } else {
             div.classList.add("unpaid");
-            div.innerHTML = `
-              <div><strong>STT:</strong> ${index + 1}</div>
-              <div><strong>Họ tên:</strong> ${stu.name}</div>
-              <div><strong>Lớp:</strong> 11A6</div>
-              <div><strong>Trạng thái:</strong> ⏳ Chưa đóng</div>
-            `;
-
-
-            div.addEventListener("click", () => {
-              document.querySelectorAll(".student").forEach(el => el.classList.remove("selected"));
-              div.classList.add("selected");
-              selectedStudent = stu;
-            });
-          }
-
-
-          container.appendChild(div);
-        });
-      });
-
-    // Nút đóng tiền
-    document.getElementById("payBtn").addEventListener("click", () => {
-      if (!selectedStudent) {
-        alert("Vui lòng chọn tên của bạn!");
-        return;
-      }
-
-      fetch(API_URL, {
-        method: "POST",
-        body: JSON.stringify(selectedStudent),
-        headers: {"Content-Type": "application/json"}
-      })
-      .then(res => res.json())
-      .then(response => {
-        document.getElementById("result").innerText = response.message;
-        if (response.status === "success") {
-          setTimeout(() => location.reload(), 1000);
+            div.innerHTML = `<div><strong>STT:</strong> ${stu.stt}</div>
+                             <div><strong>Họ tên:</strong> ${stu.name}</div>
+                             <div><strong>Lớp:</strong> 11A6</div>
+                             <div><strong>Trạng thái:</strong> ⏳ Chưa đóng</div>`;
+            div.addEventListener("click", ()=> showPopup(stu.name));
         }
-      })
-      .catch(err => {
-        document.getElementById("result").innerText = "❌ Lỗi kết nối!";
-      });
-    });
-  </script>
 
-  <!-- particles.js -->
-  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-  <script>
-    particlesJS("particles-js", {
-      "particles": {
-        "number": {"value": 80, "density": {"enable": true, "value_area": 800}},
-        "color": {"value": ["#ff85c0", "#ff4da6", "#ffa6d1"]},
-        "shape": {"type": "circle"},
-        "opacity": {
-          "value": 0.6,
-          "random": true
-        },
-        "size": {
-          "value": 4,
-          "random": true
-        },
-        "move": {
-          "direction": "bottom",
-          "speed": 1.5,
-          "out_mode": "out"
-        }
-      },
-      "interactivity": {
-        "events": {"onhover": {"enable": false}, "onclick": {"enable": false}}
-      },
-      "retina_detect": true
+        container.appendChild(div);
     });
-  </script>
+});
+</script>
+
 </body>
 </html>
-
-
-
