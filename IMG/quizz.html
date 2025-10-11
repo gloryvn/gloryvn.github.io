@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quiz Thủy canh — Phiên bản đẹp</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg1:#071124; --bg2:#08182a; --card:#0f1724; --glass: rgba(255,255,255,0.04);
+      --accent:#00d4ff; --accent-2:#7b61ff; --muted:#9fb0c8; --success:#6ee7b7; --danger:#ff7a7a;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;}
+    body{font-family:Inter,system-ui,Arial; margin:0; background:radial-gradient(1200px 600px at 10% 10%, rgba(123,97,255,0.08), transparent), linear-gradient(180deg,var(--bg1),var(--bg2)); color:#e6f0f8; -webkit-font-smoothing:antialiased;}
+
+    /* particles */
+    .bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+    .wrap{position:relative;z-index:2;max-width:980px;margin:36px auto;padding:28px}
+    header{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+    .logo{width:64px;height:64px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#021020;font-size:18px;box-shadow:0 8px 30px rgba(123,97,255,0.12);}
+    h1{font-size:20px;margin:0}
+    p.lead{margin:0;color:var(--muted)}
+
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:18px}
+
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.04);padding:16px;border-radius:14px;backdrop-filter:blur(6px);box-shadow:0 6px 18px rgba(2,6,23,0.6);position:relative;overflow:hidden}
+    .qtop{display:flex;align-items:center;gap:12px}
+    .qnum{width:44px;height:44px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);border:1px solid rgba(0,212,255,0.06)}
+    .qtext{font-weight:600}
+
+    .options{margin-top:12px;display:flex;flex-direction:column;gap:10px}
+    .opt{background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.006));padding:10px 12px;border-radius:10px;display:flex;align-items:center;gap:12px;border:1px solid rgba(255,255,255,0.02);cursor:pointer;transition:transform .18s ease, box-shadow .18s ease}
+    .opt:hover{transform:translateY(-4px);box-shadow:0 10px 30px rgba(2,6,23,0.45)}
+    .opt input{accent-color:var(--accent)}
+
+    .row{display:flex;gap:10px;align-items:center;margin-top:12px}
+    .btn{background:linear-gradient(90deg,var(--accent),var(--accent-2));border:none;padding:8px 14px;border-radius:10px;color:#021024;font-weight:700;cursor:pointer;box-shadow:0 8px 20px rgba(123,97,255,0.12)}
+    .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);font-weight:600}
+
+    .feedback{margin-top:12px;padding:10px;border-radius:10px;display:none;font-weight:700}
+    .feedback.ok{display:block;background:linear-gradient(90deg, rgba(110,231,183,0.06), rgba(110,231,183,0.03));color:var(--success);border:1px solid rgba(110,231,183,0.12)}
+    .feedback.bad{display:block;background:linear-gradient(90deg, rgba(255,122,122,0.04), rgba(255,122,122,0.02));color:var(--danger);border:1px solid rgba(255,122,122,0.09)}
+
+    /* result pulse */
+    .pulse{position:absolute;right:-120px;top:-60px;width:260px;height:260px;pointer-events:none;border-radius:50%;background:radial-gradient(circle at 30% 30%, rgba(0,212,255,0.055), transparent 30%);transform:rotate(12deg)}
+
+    /* full width single column on small */
+    @media (max-width:880px){.grid{grid-template-columns:1fr}}
+
+    /* fancy check animation */
+    .tick{width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:center}
+    .confetti-canvas{position:fixed;left:0;top:0;pointer-events:none;z-index:30}
+
+    /* footer */
+    footer{margin-top:18px;color:var(--muted);text-align:center}
+  </style>
+</head>
+<body>
+  <canvas class="bg-canvas" id="bg"></canvas>
+  <canvas id="confetti" class="confetti-canvas"></canvas>
+
+  <div class="wrap">
+    <header>
+      <div class="logo">DP</div>
+      <div>
+        <h1>GloryVN - Quizz</h1>
+        <p class="lead">dphat - Nhóm 4 - Sinh Học - Chuyên Đề - Bài 2</p>
+      </div>
+    </header>
+
+    <main class="grid">
+      <!-- Q1 -->
+      <section class="card" id="card1">
+        <div class="pulse"></div>
+        <div class="qtop"><div class="qnum">1</div><div class="qtext">Hệ thống thủy canh có bao nhiêu thành phần cơ bản?</div></div>
+        <div class="options">
+          <label class="opt"><input type="radio" name="q1" value="2"><span>2 thành phần</span></label>
+          <label class="opt"><input type="radio" name="q1" value="3"><span>3 thành phần</span></label>
+          <label class="opt"><input type="radio" name="q1" value="4"><span>4 thành phần</span></label>
+        </div>
+        <div class="row">
+          <button class="btn" onclick="check('q1','3','fb1', true)">Kiểm tra</button>
+          <button class="btn secondary" onclick="resetCard('q1','fb1')">Làm lại</button>
+        </div>
+        <div id="fb1" class="feedback"></div>
+      </section>
+
+      <!-- Q2 -->
+      <section class="card" id="card2">
+        <div class="qtop"><div class="qnum">2</div><div class="qtext">Thành phần nào là &quot;kho chứa&quot; và trung tâm pha chế dung dịch dinh dưỡng?</div></div>
+        <div class="options">
+          <label class="opt"><input type="radio" name="q2" value="mang"><span>Máng trồng</span></label>
+          <label class="opt"><input type="radio" name="q2" value="be"><span>Bể / Thùng chứa dung dịch</span></label>
+          <label class="opt"><input type="radio" name="q2" value="ro"><span>Rọ trồng và giá thể</span></label>
+        </div>
+        <div class="row">
+          <button class="btn" onclick="check('q2','be','fb2', true)">Kiểm tra</button>
+          <button class="btn secondary" onclick="resetCard('q2','fb2')">Làm lại</button>
+        </div>
+        <div id="fb2" class="feedback"></div>
+      </section>
+
+      <!-- Q3 -->
+      <section class="card" id="card3">
+        <div class="qtop"><div class="qnum">3</div><div class="qtext">Chức năng chính của rọ trồng và giá thể là gì?</div></div>
+        <div class="options">
+          <label class="opt"><input type="radio" name="q3" value="cap"><span>Cung cấp dinh dưỡng</span></label>
+          <label class="opt"><input type="radio" name="q3" value="giu"><span>Giữ ẩm và cố định cây (không cung cấp dinh dưỡng)</span></label>
+        </div>
+        <div class="row">
+          <button class="btn" onclick="check('q3','giu','fb3', true)">Kiểm tra</button>
+          <button class="btn secondary" onclick="resetCard('q3','fb3')">Làm lại</button>
+        </div>
+        <div id="fb3" class="feedback"></div>
+      </section>
+
+      <!-- Q4 -->
+      <section class="card" id="card4">
+        <div class="qtop"><div class="qnum">4</div><div class="qtext">Ưu điểm chính của thủy canh sạch là gì?</div></div>
+        <div class="options">
+          <label class="opt"><input type="radio" name="q4" value="tietkiem"><span>Tiết kiệm nước &amp; hạn chế ô nhiễm</span></label>
+          <label class="opt"><input type="radio" name="q4" value="thuoc"><span>Sử dụng nhiều thuốc trừ sâu</span></label>
+        </div>
+        <div class="row">
+          <button class="btn" onclick="check('q4','tietkiem','fb4', true)">Kiểm tra</button>
+          <button class="btn secondary" onclick="resetCard('q4','fb4')">Làm lại</button>
+        </div>
+        <div id="fb4" class="feedback"></div>
+      </section>
+
+      <!-- Q5 -->
+      <section class="card" id="card5">
+        <div class="qtop"><div class="qnum">5</div><div class="qtext">Trở ngại lớn khiến thủy canh chưa phổ biến?</div></div>
+        <div class="options">
+          <label class="opt"><input type="radio" name="q5" value="chiphi"><span>Chi phí đầu tư ban đầu cao</span></label>
+          <label class="opt"><input type="radio" name="q5" value="khac"><span>Không có lợi</span></label>
+        </div>
+        <div class="row">
+          <button class="btn" onclick="check('q5','chiphi','fb5', true)">Kiểm tra</button>
+          <button class="btn secondary" onclick="resetCard('q5','fb5')">Làm lại</button>
+        </div>
+        <div id="fb5" class="feedback"></div>
+      </section>
+
+    </main>
+
+    <footer>credit: GloryVN - Đào Duy Phát</footer>
+  </div>
+
+  <script>
+    /* ---------- background particles ---------- */
+    const bgCanvas = document.getElementById('bg');
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    function resizeBg(){ bgCanvas.width = innerWidth * dpr; bgCanvas.height = innerHeight * dpr; bgCanvas.style.width = innerWidth+'px'; bgCanvas.style.height = innerHeight+'px'; }
+    resizeBg(); window.addEventListener('resize', resizeBg);
+    const bgCtx = bgCanvas.getContext('2d');
+    const particles = [];
+    for(let i=0;i<60;i++){ particles.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight, r:1+Math.random()*3, vx:(Math.random()-0.5)*0.2, vy:(Math.random()-0.5)*0.2, a:0.1+Math.random()*0.5}) }
+    function drawBG(){ bgCtx.clearRect(0,0,bgCanvas.width,bgCanvas.height); bgCtx.save(); bgCtx.scale(dpr,dpr);
+      for(const p of particles){ p.x += p.vx; p.y += p.vy; if(p.x<0) p.x=innerWidth; if(p.x>innerWidth) p.x=0; if(p.y<0) p.y=innerHeight; if(p.y>innerHeight) p.y=0; bgCtx.beginPath(); bgCtx.fillStyle = 'rgba(255,255,255,'+p.a+')'; bgCtx.arc(p.x,p.y,p.r,0,Math.PI*2); bgCtx.fill(); }
+      bgCtx.restore(); requestAnimationFrame(drawBG);
+    }
+    drawBG();
+
+    /* ---------- confetti ---------- */
+    const confettiCanvas = document.getElementById('confetti');
+    confettiCanvas.width = innerWidth * dpr; confettiCanvas.height = innerHeight * dpr; confettiCanvas.style.width = innerWidth+'px'; confettiCanvas.style.height = innerHeight+'px';
+    const cctx = confettiCanvas.getContext('2d'); cctx.scale(dpr,dpr);
+    let confettis = [];
+    function spawnConfetti(x,y){ for(let i=0;i<50;i++){ confettis.push({x:x, y:y, vx:(Math.random()-0.5)*6, vy: -Math.random()*8 - 2, r:4+Math.random()*6, color: ['#00d4ff','#7b61ff','#6ee7b7','#ffd166'][Math.floor(Math.random()*4)], rot:Math.random()*360, vr:(Math.random()-0.5)*10}) } }
+    function updateConfetti(){ cctx.clearRect(0,0,innerWidth,innerHeight); for(let i=confettis.length-1;i>=0;i--){ const p = confettis[i]; p.vy += 0.28; p.x += p.vx; p.y += p.vy; p.rot += p.vr; cctx.save(); cctx.translate(p.x,p.y); cctx.rotate(p.rot*Math.PI/180); cctx.fillStyle = p.color; cctx.fillRect(-2, -p.r/2, 6, p.r); cctx.restore(); if(p.y>innerHeight+50) confettis.splice(i,1); } requestAnimationFrame(updateConfetti); }
+    updateConfetti();
+
+    /* ---------- check logic + animations ---------- */
+    function showFeedback(id, correct, msg){ const el = document.getElementById(id); el.className = 'feedback ' + (correct? 'ok':'bad'); el.textContent = msg; }
+    function resetCard(qName, fbId){ const radios = document.querySelectorAll(`input[name='${qName}']`); radios.forEach(r=>r.checked=false); const fb = document.getElementById(fbId); fb.style.display='none'; fb.textContent=''; fb.className='feedback'; }
+    function check(qName, correctValue, fbId, doConfetti){ const sel = document.querySelector(`input[name='${qName}']:checked`); if(!sel){ showFeedback(fbId,false,'Vui lòng chọn đáp án!'); return } if(sel.value === correctValue){ showFeedback(fbId,true,'✅ Chính xác — Good job!'); if(doConfetti){ const rect = sel.getBoundingClientRect(); spawnConfetti(rect.left + rect.width/2, rect.top + rect.height/2); } } else { showFeedback(fbId,false,'❌ Sai rồi — thử lại nhé'); } }
+
+    // subtle reveal when scrolled into view
+    const cards = document.querySelectorAll('.card'); const io = new IntersectionObserver((entries)=>{ entries.forEach(e=>{ if(e.isIntersecting) e.target.style.transform='translateY(0)'; }) },{threshold:0.12}); cards.forEach(c=>{ c.style.transform='translateY(20px)'; c.style.transition='transform .6s cubic-bezier(.2,.9,.3,1)'; io.observe(c); });
+
+  </script>
+</body>
+</html>
