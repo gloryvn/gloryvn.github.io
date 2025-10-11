@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>GLORY VN - RANDOM NAME</title>
+<style>
+    body {
+        font-family: "Poppins", sans-serif;
+        background: radial-gradient(circle at top left, #0a0c10, #111827);
+        color: #fff;
+        text-align: center;
+        padding: 40px 20px;
+        overflow-x: hidden;
+        min-height: 100vh;
+    }
+    h1 {
+        font-size: 2.2em;
+        margin-bottom: 30px;
+        background: linear-gradient(90deg, #00e5ff, #7c4dff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    /* thanh công cụ bên trái */
+    #topbar {
+        position: fixed;
+        left: 25px;
+        top: 25px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    #fileInput { display: none; }
+
+    .file-label {
+        background: linear-gradient(135deg, #0d7377, #14ffec);
+        color: #111;
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        box-shadow: 0 0 10px #14ffec80;
+        width: 160px;
+    }
+    .file-label:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px #14ffec;
+    }
+    button {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        background: linear-gradient(135deg, #7c4dff, #00e5ff);
+        color: #fff;
+        box-shadow: 0 0 10px #7c4dff80;
+        transition: all 0.3s;
+        width: 160px;
+    }
+    button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px #7c4dff;
+    }
+
+    /* khung tên dạng grid */
+    #names {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 20px 50px;   /* 👈 20px là dọc, 35px là ngang */
+        justify-items: center;
+        align-items: center;
+        width: 90vw;        /* 👈 dùng 90% chiều rộng màn hình */
+        margin: 80px auto 0 auto;
+    }
+    .name-box {
+        width: 200px;     /* tăng từ 150px lên 180px */
+        height: 75px;     /* tăng từ 45px lên 55px */
+        font-size: 1rem;  /* chữ to hơn nhẹ */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 12px;
+        font-weight: 600;
+        color: #fff;
+        backdrop-filter: blur(6px);
+        transition: all 0.3s ease;
+    }
+    .name-box:hover {
+        background: rgba(255,255,255,0.18);
+        transform: scale(1.07);
+    }
+
+    /* hiệu ứng tráo */
+    .shuffle-animation {
+        animation: shuffle 0.4s ease-in-out;
+    }
+    @keyframes shuffle {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+        25% { transform: translateY(-25px) rotate(8deg); opacity: 0.7; }
+        50% { transform: translateY(20px) rotate(-8deg); opacity: 0.7; }
+        100% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    }
+
+    /* tên được chọn */
+    #chosen {
+        margin-top: 35px;
+        font-size: 1.6em;
+        font-weight: bold;
+        color: #00e5ff;
+        text-shadow: 0 0 12px #00e5ff;
+    }
+    .glow {
+        animation: glow 1s ease-in-out infinite alternate;
+    }
+    @keyframes glow {
+        from { text-shadow: 0 0 10px #00e5ff; }
+        to { text-shadow: 0 0 25px #00e5ff, 0 0 45px #7c4dff; }
+    }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+    <label for="fileInput" class="file-label">📁 Chọn danh sách lớp</label>
+    <input type="file" id="fileInput" accept=".txt">
+    <button id="shuffleBtn" disabled>🔀 Tráo danh sách</button>
+</div>
+
+<h1>GLORY VN - RANDOM NAME</h1>
+<div id="names"></div>
+
+<script>
+let students = [];
+let shuffled = [];
+let showingNumbers = false;
+
+document.getElementById("fileInput").addEventListener("change", function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        students = event.target.result
+            .split(/\r?\n/)
+            .map(line => line.trim())
+            .filter(name => name.length > 0);
+        renderNames(students);
+        document.getElementById("shuffleBtn").disabled = false;
+    };
+    reader.readAsText(file, 'utf-8');
+});
+
+function renderNames(list, showNumberOnly=false) {
+    const container = document.getElementById("names");
+    container.innerHTML = "";
+    list.forEach((name, index) => {
+        const div = document.createElement("div");
+        div.className = "name-box";
+        div.textContent = showNumberOnly ? index + 1 : name;
+        div.addEventListener("click", () => {
+            if (showingNumbers)
+                reveal(index);
+        });
+        container.appendChild(div);
+    });
+}
+
+document.getElementById("shuffleBtn").addEventListener("click", function() {
+    if (students.length === 0) return;
+    shuffled = [...students];
+    let shuffleTimes = 30;
+    let i = 0;
+    const shuffleInterval = setInterval(() => {
+        shuffled.sort(() => Math.random() - 0.5);
+        animateShuffle();
+        renderNames(shuffled);
+        i++;
+        if (i >= shuffleTimes) {
+            clearInterval(shuffleInterval);
+            setTimeout(() => {
+                renderNames(shuffled, true);
+                showingNumbers = true;
+            }, 600);
+        }
+    }, 200);
+});
+
+function animateShuffle() {
+    const boxes = document.querySelectorAll(".name-box");
+    boxes.forEach(box => {
+        box.classList.add("shuffle-animation");
+        setTimeout(() => box.classList.remove("shuffle-animation"), 400);
+    });
+}
+
+function reveal(index) {
+    const divs = document.querySelectorAll(".name-box");
+    const chosenDiv = divs[index];
+    chosenDiv.style.background = "rgba(0,229,255,0.3)";
+    chosenDiv.style.border = "1px solid #00e5ff";
+    chosenDiv.style.transform = "scale(1.15)";
+    chosenDiv.textContent = shuffled[index];
+    
+    document.getElementById("chosen").classList.add("glow");
+}
+</script>
+
+</body>
+</html>
