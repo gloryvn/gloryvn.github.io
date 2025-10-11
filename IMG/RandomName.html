@@ -149,8 +149,10 @@
         to { text-shadow: 0 0 25px #00e5ff, 0 0 45px #7c4dff; }
     }
 
-    /* Ẩn nút "Hiện tất cả tên" ban đầu */
-    #revealAllBtn { display: none; }
+    /* Ẩn nút "Tráo danh sách" và "Hiện tất cả tên" ban đầu */
+    #shuffleBtn, #revealAllBtn {
+        display: none;
+    }
 </style>
 </head>
 <body>
@@ -160,7 +162,7 @@
 <div id="topbar">
     <label for="fileInput" class="file-label">📁 Chọn danh sách lớp</label>
     <input type="file" id="fileInput" accept=".txt">
-    <button id="shuffleBtn" disabled>🔀 Tráo danh sách</button>
+    <button id="shuffleBtn">🔀 Tráo danh sách</button>
     <button id="revealAllBtn">👁️ Hiện tất cả tên</button>
 </div>
 
@@ -172,6 +174,7 @@ let students = [];
 let shuffled = [];
 let showingNumbers = false;
 
+// Chọn danh sách lớp
 document.getElementById("fileInput").addEventListener("change", function(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -183,11 +186,12 @@ document.getElementById("fileInput").addEventListener("change", function(e) {
             .filter(name => name.length > 0);
         shuffled = [...students];
         renderNames(students, false);
-        document.getElementById("shuffleBtn").disabled = false;
+        document.getElementById("shuffleBtn").style.display = "inline-block"; // hiện nút tráo
     };
     reader.readAsText(file, 'utf-8');
 });
 
+// Render danh sách
 function renderNames(list, hideNames=false) {
     const container = document.getElementById("names");
     container.innerHTML = "";
@@ -208,10 +212,11 @@ function renderNames(list, hideNames=false) {
     });
 }
 
+// Nút tráo
 document.getElementById("shuffleBtn").addEventListener("click", function() {
     if (students.length === 0) return;
     shuffled = [...students];
-    document.getElementById("revealAllBtn").style.display = "none"; // ẩn nút hiện tên trong khi tráo
+    document.getElementById("revealAllBtn").style.display = "none"; // ẩn nút hiện tên khi tráo
     let shuffleTimes = 35;
     let i = 0;
     const shuffleInterval = setInterval(() => {
@@ -226,7 +231,7 @@ document.getElementById("shuffleBtn").addEventListener("click", function() {
                 showingNumbers = true;
                 document.getElementById("chosen").textContent = "";
                 document.getElementById("chosen").classList.remove("glow");
-                document.getElementById("revealAllBtn").style.display = "inline-block"; // chỉ hiện nút sau khi ẩn tên
+                document.getElementById("revealAllBtn").style.display = "inline-block"; // hiện nút sau khi ẩn tên
             }, 600);
         }
     }, 120);
@@ -240,6 +245,7 @@ function animateShuffle() {
     });
 }
 
+// Chọn từng ô
 function reveal(index) {
     const container = document.getElementById("names");
     const divs = container.querySelectorAll(".name-box");
@@ -249,12 +255,12 @@ function reveal(index) {
     nameSpan.style.display = "block";
     chosenDiv.classList.toggle("selected");
     const name = nameSpan.textContent;
-    document.getElementById("chosen").textContent = "Lộ vị trí: " + name;
+    document.getElementById("chosen").textContent = name;
     document.getElementById("chosen").classList.add("glow");
 }
 
+// Nút hiện tất cả tên
 document.getElementById("revealAllBtn").addEventListener("click", function() {
-    // chỉ hiện tất cả tên, không ẩn lại nữa
     const container = document.getElementById("names");
     const divs = container.querySelectorAll(".name-box");
     divs.forEach(div => {
