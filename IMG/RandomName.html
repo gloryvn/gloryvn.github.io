@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>GLORY VN - RANDOM NAME</title>
+<link href="https://db.onlinewebfonts.com/c/107a82b03afe661cb8ef268bd146c38c?family=Nevan+RUS" rel="stylesheet">
 <style>
     body {
         font-family: "Segoe UI", "Arial", "Helvetica Neue", sans-serif;
@@ -14,12 +15,41 @@
         min-height: 100vh;
     }
     h1 {
-        font-size: 2.3em;
-        margin: 5px 0 25px 0;
+        font-family: "Nevan RUS", sans-serif;
+        font-size: 2.5em;
+        margin: 0 25px 0;
         background: linear-gradient(90deg, #00e5ff, #7c4dff);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-shadow: 0 0 15px rgba(0, 229, 255, 0.6);
+        animation: glowPulse 4s infinite ease-in-out;
     }
+
+    /* Hiệu ứng nhấp nháy theo nhịp */
+    @keyframes glowPulse {
+        0%, 100% {
+            text-shadow:
+                0 0 5px #00e5ff,
+                0 0 10px #00e5ff,
+                0 0 20px #7c4dff,
+                0 0 40px #7c4dff;
+            transform: scale(1.03);
+        }
+        50% {
+            text-shadow:
+                0 0 2px #00e5ff,
+                0 0 5px #00e5ff,
+                0 0 10px #7c4dff,
+                0 0 20px #7c4dff;
+            transform: scale(1);
+        }
+    }
+
+
+ 
+
 
     #topbar {
         display: flex;
@@ -195,7 +225,7 @@
 </head>
 <body>
 
-<h1>RANDOM NAME BY DPHAT</h1>
+<h1>DPHAT x GLORY VN</h1>
 
 <div id="topbar">
     <label for="fileInput" class="file-label">📁 Chọn danh sách lớp</label>
