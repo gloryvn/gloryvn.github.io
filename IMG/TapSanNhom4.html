@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nhiệm vụ nhóm Neon</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@400;600&display=swap');
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at center, #0a0a12, #000);
+      color: #fff;
+      margin: 0;
+      padding: 50px 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.2);
+      padding: 30px;
+      width: 90%;
+      max-width: 950px;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    h1 {
+      text-align: center;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 30px;
+      color: #0ff;
+      text-shadow: 0 0 15px #00fff2, 0 0 25px #00fff2;
+      margin-bottom: 25px;
+      letter-spacing: 2px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+    }
+
+    thead {
+      background-color: rgba(0, 255, 255, 0.15);
+      text-shadow: 0 0 10px #00ffff;
+    }
+
+    th {
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.25s ease;
+      cursor: pointer;
+    }
+
+    tbody tr:hover {
+      background-color: rgba(0, 255, 255, 0.1);
+      transform: scale(1.01);
+      box-shadow: 0 0 20px #00ffff40;
+    }
+
+    td:first-child {
+      color: #0ff;
+      font-weight: 600;
+    }
+
+    /* === Neon Popup === */
+    .popup-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 0.4s ease;
+      z-index: 999;
+    }
+
+    .popup {
+      background: linear-gradient(145deg, #0b0b14, #1e1e2e);
+      border: 2px solid #0ff;
+      border-radius: 16px;
+      padding: 25px 30px;
+      width: 90%;
+      max-width: 520px;
+      box-shadow: 0 0 25px #00eaff, 0 0 40px #00ffff70;
+      animation: popupOpen 0.5s ease;
+      position: relative;
+      text-align: center  ;
+    }
+
+    .popup::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      padding: 2px;
+      background: linear-gradient(45deg, #ff00cc, #00ffff, #ffcc00);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      animation: neonBorder 3s linear infinite;
+    }
+
+    @keyframes neonBorder {
+      0% {filter: hue-rotate(0deg);}
+      100% {filter: hue-rotate(360deg);}
+    }
+
+    .popup h2 {
+      font-family: 'Orbitron', sans-serif;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00eaff, 0 0 25px #00ffff;
+      margin-top: 0;
+    }
+
+    .popup p, .popup ul {
+      color: #e0e0e0;
+      line-height: 1.6;
+    }
+
+    .popup ul {
+      padding-left: 20px;
+    }
+
+    .popup button {
+      background: #00ffff;
+      color: #000;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      float: right;
+      box-shadow: 0 0 10px #00ffff, 0 0 30px #00ffff80;
+      transition: all 0.3s ease;
+    }
+
+    .popup button:hover {
+      background: #ff00cc;
+      color: #fff;
+      box-shadow: 0 0 15px #ff00cc, 0 0 40px #ff00cc90;
+    }
+
+    @keyframes popupOpen {
+      from {transform: scale(0.8); opacity: 0;}
+      to {transform: scale(1); opacity: 1;}
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>BẢNG NHIỆM VỤ NHÓM</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>STT</th>
+          <th>Họ và tên</th>
+          <th>Nhiệm vụ</th>
+          <th>Bắt đầu</th>
+          <th>Kết thúc</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr onclick="showPopup('ngan')">
+          <td>1</td><td>Phan Đặng Thùy Ngân</td><td>Làm tập san</td><td>4/10</td><td>11/10</td>
+        </tr>
+        <tr onclick="showPopup('phat')">
+          <td>2</td><td>Đào Duy Phát</td><td>Làm file / tập san</td><td>4/10</td><td>9/10</td>
+        </tr>
+        <tr onclick="showPopup('trinh')">
+          <td>3</td><td>Trần Ngọc Phương Trinh</td><td>Soạn I</td><td>4/10</td><td>9/10</td>
+        </tr>
+        <tr onclick="showPopup('an')">
+          <td>4</td><td>Nguyễn Thiên Triều Ân</td><td>Soạn II</td><td>4/10</td><td>9/10</td>
+        </tr>
+        <tr onclick="showPopup('dat')">
+          <td>5</td><td>Võ Minh Đạt</td><td>Hướng sử dụng phân bón</td><td>4/10</td><td>11/10</td>
+        </tr>
+        <tr onclick="showPopup('phuong')">
+          <td>6</td><td>Nguyễn Phan Hoài Phương</td><td>Quảng bá hình ảnh</td><td>4/10</td><td>11/10</td>
+        </tr>
+        <tr onclick="showPopup('kiet')">
+          <td>7</td><td>Tiêu Anh Kiệt</td><td>Thành tựu</td><td>4/10</td><td>11/10</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Popup -->
+  <div class="popup-overlay" id="popupOverlay">
+    <div class="popup" id="popupBox">
+      <h2 id="popupName"></h2>
+      <p><strong>Nhiệm vụ:</strong> <span id="popupTask"></span></p>
+      <p><strong>Thời gian:</strong> <span id="popupTime"></span></p>
+      <p><strong>Giai đoạn thực hiện:</strong></p>
+      <ul id="popupSteps"></ul>
+      <p><strong>Đánh giá:</strong> <span style="color:#00ff99;">Hoàn thành tốt ✅</span></p>
+    </div>
+  </div>
+
+  <script>
+    const data = {
+      ngan:{name:"Phan Đặng Thùy Ngân",task:"Làm tập san",time:"4/10 → 11/10",steps:[
+        "4–6/10: Lên bố cục và chủ đề cho tập san.",
+        "7–9/10: Thu thập bài viết, hình ảnh.",
+        "10–11/10: Hoàn thiện, chỉnh sửa và nộp."]},
+      phat:{name:"Đào Duy Phát",task:"Làm file",time:"4/10 → 9/10",steps:[
+        "4–6/10: Tạo bố cục file trình bày.",
+        "7–8/10: Tổng hợp nội dung nhóm.",
+        "9/10: Kiểm tra và nộp."]},
+      trinh:{name:"Trần Ngọc Phương Trinh",task:"Soạn I",time:"4/10 → 9/10",steps:[
+        "4–6/10: Thu thập tài liệu phần I.",
+        "7–8/10: Biên soạn và chỉnh lý nội dung.",
+        "9/10: Gửi bản hoàn thiện."]},
+      an:{name:"Nguyễn Thiên Triều Ân",task:"Soạn II",time:"4/10 → 9/10",steps:[
+        "4–6/10: Phân tích nội dung phần II.",
+        "7–8/10: Viết chi tiết, chỉnh sửa.",
+        "9/10: Hoàn thiện gửi tổng hợp."]},
+      dat:{name:"Võ Minh Đạt",task:"Hướng dẫn phân bón",time:"4/10 → 11/10",steps:[
+        "4–6/10: Nghiên cứu tài liệu.",
+        "7–9/10: Viết hướng dẫn và minh họa.",
+        "10–11/10: Chỉnh sửa và nộp."]},
+      phuong:{name:"Nguyễn Phan Hoài Phương",task:"Quảng bá hình ảnh",time:"4/10 → 11/10",steps:[
+        "4–6/10: Lên ý tưởng quảng bá.",
+        "7–9/10: Thu thập hình ảnh.",
+        "10–11/10: Biên tập và hoàn thiện."]},
+      kiet:{name:"Tiêu Anh Kiệt",task:"Thành tựu",time:"4/10 → 11/10",steps:[
+        "4–6/10: Tổng hợp kết quả nhóm.",
+        "7–9/10: Viết phần tổng kết.",
+        "10–11/10: Hoàn thiện trình bày."]}
+    };
+
+    function showPopup(id){
+      const p=document.getElementById("popupOverlay");
+      const member=data[id];
+      document.getElementById("popupName").textContent=member.name;
+      document.getElementById("popupTask").textContent=member.task;
+      document.getElementById("popupTime").textContent=member.time;
+      const list=document.getElementById("popupSteps");
+      list.innerHTML="";
+      member.steps.forEach(s=>{
+        const li=document.createElement("li");
+        li.textContent=s;
+        list.appendChild(li);
+      });
+      p.style.display="flex";
+    }
+
+    function closePopup(){
+      document.getElementById("popupOverlay").style.display="none";
+    }
+
+    // Thêm sự kiện click ra ngoài popup để đóng
+    document.getElementById("popupOverlay").addEventListener("click", e => {
+      if (e.target === e.currentTarget) closePopup();
+    });
+
+    // Thêm sự kiện phím ESC
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") closePopup();
+    });
+
+    // Gán lại nút đóng (phòng trường hợp code bị trễ)
+    document.getElementById("closeBtn").addEventListener("click", closePopup);
+  </script>
+</body>
+</html>
